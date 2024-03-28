@@ -16,3 +16,7 @@ config-server/settings.exe
 shortcuts/
 lanzou_cookie.txt
 CommandInputSkin.txt
+/bin/settings.exe~
+/test.ahk
+data/config.local.json
+bin/MyKeymap.ahk
