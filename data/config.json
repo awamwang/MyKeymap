@@ -272,27 +272,55 @@
           {
             "windowGroupID": 0,
             "actionTypeID": 1,
-            "comment": "Windows Terminal",
-            "winTitle": "ahk_exe WindowsTerminal.exe",
-            "target": "shortcuts\\终端预览.lnk"
+            "comment": "Appetizer",
+            "winTitle": "ahk_exe Appetizer.exe",
+            "target": "G:\\Projects\\104手机自动化\\工具\\Appetizer-win32-x64\\Appetizer.exe"
+          }
+        ],
+        "*b": [
+          {
+            "windowGroupID": 0,
+            "actionTypeID": 1,
+            "comment": "Billfish",
+            "winTitle": "ahk_exe  C:\\Program Files\\Billfish\\Billfish.exe",
+            "target": "C:\\Program Files\\Billfish\\Billfish.exe"
+          }
+        ],
+        "*c": [
+          {
+            "windowGroupID": 0,
+            "actionTypeID": 1,
+            "comment": "VsCode",
+            "winTitle": "ahk_exe Code.exe",
+            "target": "shortcuts\\Visual Studio Code.lnk"
           }
         ],
         "*d": [
           {
             "windowGroupID": 0,
             "actionTypeID": 1,
-            "comment": "Edge",
-            "winTitle": "ahk_exe msedge.exe",
-            "target": "shortcuts\\Microsoft Edge.lnk"
+            "comment": "Edge Dev",
+            "winTitle": "ahk_exe C:\\Program Files (x86)\\Microsoft\\Edge Dev\\Application\\msedge.exe",
+            "target": "shortcuts\\Microsoft Edge Dev.lnk"
           }
         ],
         "*e": [
           {
             "windowGroupID": 0,
             "actionTypeID": 1,
-            "comment": "File Explorer",
-            "winTitle": "ahk_class CabinetWClass ahk_exe Explorer.EXE",
-            "target": "shortcuts\\File Explorer.lnk"
+            "comment": "Edge",
+            "winTitle": "ahk_exe C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe",
+            "target": "shortcuts\\Microsoft Edge.lnk",
+            "detectHiddenWindow": true
+          }
+        ],
+        "*g": [
+          {
+            "windowGroupID": 0,
+            "actionTypeID": 1,
+            "comment": "Chrome",
+            "winTitle": "ahk_exe chrome.exe",
+            "target": "shortcuts\\Google Chrome.lnk"
           }
         ],
         "*h": [
@@ -317,71 +345,72 @@
           {
             "windowGroupID": 0,
             "actionTypeID": 1,
-            "comment": "IntelliJ IDEA",
-            "winTitle": "ahk_exe idea64.exe",
-            "target": "shortcuts\\IntelliJ IDEA Ultimate.lnk"
+            "comment": "剪映专业版",
+            "winTitle": "ahk_exe JianyingPro.exe",
+            "target": "shortcuts\\剪映专业版.lnk"
           }
         ],
         "*k": [
           {
             "windowGroupID": 0,
             "actionTypeID": 1,
-            "comment": "PotPlayer",
-            "winTitle": "ahk_class PotPlayer64",
-            "target": "shortcuts\\PotPlayer 64 bit.lnk"
+            "comment": "KimiAI",
+            "winTitle": "Kimi.ai - 帮你看更大的世界 ahk_class Chrome_WidgetWin_1",
+            "target": "shortcuts\\Kimi.ai - 帮你看更大的世界.lnk"
           }
         ],
         "*l": [
           {
             "windowGroupID": 0,
             "actionTypeID": 1,
-            "comment": "Excel",
-            "winTitle": "ahk_exe EXCEL.EXE",
-            "target": "shortcuts\\Excel.lnk"
+            "comment": "Logseq笔记",
+            "winTitle": "ahk_exe Logseq.exe",
+            "target": "C:\\Users\\Administrator\\AppData\\Local\\Logseq\\Logseq.exe"
           }
         ],
         "*m": [
           {
             "windowGroupID": 0,
-            "actionTypeID": 8,
-            "comment": "如果 QQ.exe 进程存在则输入 Ctrl+Alt+Z 热键激活 QQ，否则启动 QQ",
-            "ahkCode": "ProcessExistSendKeyOrRun(\"QQ.exe\", \"^!z\", \"shortcuts\\QQ.lnk\")"
+            "actionTypeID": 1,
+            "comment": "幕布",
+            "winTitle": "ahk_exe 幕布.exe",
+            "target": "shortcuts\\幕布.lnk"
           }
         ],
         "*n": [
           {
             "windowGroupID": 0,
             "actionTypeID": 1,
-            "comment": "GoLand",
-            "winTitle": "ahk_exe goland64.exe",
-            "target": "shortcuts\\GoLand.lnk"
+            "comment": "Notion",
+            "winTitle": "ahk_exe Notion.exe",
+            "target": "shortcuts\\Notion.lnk"
           }
         ],
         "*o": [
           {
             "windowGroupID": 0,
             "actionTypeID": 1,
-            "comment": "OneNote 桌面版",
-            "winTitle": "ahk_exe ONENOTE.EXE",
-            "target": "shortcuts\\OneNote.lnk"
+            "comment": "Directory Opus",
+            "winTitle": "ahk_exe dopus.exe",
+            "target": "shortcuts\\Directory Opus.lnk"
           }
         ],
         "*p": [
           {
             "windowGroupID": 0,
             "actionTypeID": 1,
-            "comment": "PowerPoint",
-            "winTitle": "ahk_exe POWERPNT.EXE",
-            "target": "shortcuts\\PowerPoint.lnk"
+            "comment": "PotPlayer",
+            "winTitle": "ahk_class PotPlayer64",
+            "target": "S:\\Program Files\\PotPlayerPortable64\\PotPlayerPortable.exe"
           }
         ],
         "*q": [
           {
             "windowGroupID": 0,
             "actionTypeID": 1,
-            "comment": "Everything",
-            "winTitle": "ahk_class EVERYTHING",
-            "target": "shortcuts\\Everything.lnk"
+            "comment": "Q-Dir",
+            "winTitle": "ahk_exe Q-Dir.exe",
+            "target": "C:\\Program Files\\00MUST\\Q-Dir\\Q-Dir.exe"
           }
         ],
         "*r": [
@@ -397,18 +426,54 @@
           {
             "windowGroupID": 0,
             "actionTypeID": 1,
-            "comment": "Visual Studio Code",
-            "winTitle": "ahk_exe Code.exe",
-            "target": "shortcuts\\Visual Studio Code.lnk"
+            "comment": "Sublime Text",
+            "winTitle": "ahk_exe sublime_text.exe",
+            "target": "shortcuts\\Sublime Text.lnk"
+          }
+        ],
+        "*t": [
+          {
+            "windowGroupID": 0,
+            "actionTypeID": 1,
+            "comment": "终端预览",
+            "winTitle": "ahk_exe WindowsTerminal.exe",
+            "target": "shortcuts\\终端预览.lnk"
+          }
+        ],
+        "*v": [
+          {
+            "windowGroupID": 0,
+            "actionTypeID": 1,
+            "comment": "v2rayN",
+            "winTitle": "ahk_exe v2rayN.exe",
+            "target": "S:\\Program Files\\00MUST\\v2rayN-With-Core\\v2rayN.exe"
           }
         ],
         "*w": [
           {
             "windowGroupID": 0,
             "actionTypeID": 1,
-            "comment": "Chrome",
-            "winTitle": "ahk_exe chrome.exe",
-            "target": "shortcuts\\Google Chrome.lnk"
+            "comment": "Wiz为知笔记",
+            "winTitle": "ahk_exe Wiz.exe",
+            "target": "shortcuts\\Wiz.lnk"
+          }
+        ],
+        "*x": [
+          {
+            "windowGroupID": 0,
+            "actionTypeID": 1,
+            "comment": "Visual Studio Code",
+            "winTitle": "ahk_exe Code.exe",
+            "target": "shortcuts\\Visual Studio Code.lnk"
+          }
+        ],
+        "*y": [
+          {
+            "windowGroupID": 0,
+            "actionTypeID": 1,
+            "comment": "夜神模拟器",
+            "winTitle": "ahk_exe Nox.exe",
+            "target": "shortcuts\\夜神模拟器.lnk"
           }
         ],
         "singlePress": [
@@ -430,6 +495,15 @@
       "delay": 0,
       "disableAt": "",
       "hotkeys": {
+        "*c": [
+          {
+            "windowGroupID": 0,
+            "actionTypeID": 1,
+            "comment": "Cursor",
+            "winTitle": "ahk_exe Cursor.exe",
+            "target": "shortcuts\\Cursor.lnk"
+          }
+        ],
         "*d": [
           {
             "windowGroupID": 0,
@@ -439,12 +513,76 @@
             "target": "shortcuts\\DataGrip.lnk"
           }
         ],
+        "*f": [
+          {
+            "windowGroupID": 0,
+            "actionTypeID": 1,
+            "comment": "FoxitPDFReader福昕阅读器",
+            "winTitle": "ahk_exe FoxitPDFReader.exe",
+            "target": "C:\\Program Files (x86)\\Foxit Software\\Foxit PDF Reader\\FoxitPDFReader.exe"
+          }
+        ],
+        "*l": [
+          {
+            "windowGroupID": 0,
+            "actionTypeID": 1,
+            "comment": "LocalSend",
+            "winTitle": "ahk_exe localsend_app.exe",
+            "target": "shortcuts\\LocalSend.lnk"
+          }
+        ],
+        "*m": [
+          {
+            "windowGroupID": 0,
+            "actionTypeID": 1,
+            "comment": "网易邮箱大师",
+            "winTitle": "ahk_exe mailmaster.exe",
+            "target": "shortcuts\\网易邮箱大师.lnk"
+          }
+        ],
+        "*o": [
+          {
+            "windowGroupID": 0,
+            "actionTypeID": 1,
+            "comment": "OBS Studio",
+            "winTitle": "ahk_exe obs64.exe",
+            "target": "shortcuts\\OBS Studio (64bit).lnk"
+          }
+        ],
+        "*p": [
+          {
+            "windowGroupID": 0,
+            "actionTypeID": 1,
+            "comment": "PuTTY",
+            "winTitle": "ahk_exe putty.exe",
+            "target": "shortcuts\\PuTTY.lnk"
+          }
+        ],
+        "*t": [
+          {
+            "windowGroupID": 0,
+            "actionTypeID": 1,
+            "comment": "同花顺",
+            "winTitle": "ahk_exe hexin.exe",
+            "target": "C:\\Users\\Administrator\\AppData\\Roaming\\Microsoft\\Windows\\Start Menu\\Programs\\同花顺.lnk"
+          }
+        ],
+        "*v": [
+          {
+            "windowGroupID": 0,
+            "actionTypeID": 1,
+            "comment": "v2rayN",
+            "winTitle": "ahk_exe v2rayN.exe",
+            "target": "S:\\Program Files\\00MUST\\v2rayN-With-Core\\v2rayN.exe"
+          }
+        ],
         "*w": [
           {
             "windowGroupID": 0,
-            "actionTypeID": 8,
-            "comment": "如果 WeChat.exe 进程存在则输入 Ctrl+Alt+W 热键激活微信，否则启动微信",
-            "ahkCode": "ProcessExistSendKeyOrRun(\"WeChat.exe\", \"^!w\", \"shortcuts\\微信.lnk\")"
+            "actionTypeID": 1,
+            "comment": "WinSCP",
+            "winTitle": "ahk_exe WinSCP.exe",
+            "target": "S:\\Program Files (x86)\\WinSCP\\WinSCP.exe"
           }
         ],
         "singlePress": [
@@ -460,7 +598,7 @@
     {
       "id": 8,
       "name": "J 模式",
-      "enable": true,
+      "enable": false,
       "hotkey": "*j",
       "parentID": 0,
       "delay": 0,
@@ -1211,8 +1349,8 @@
     {
       "id": 13,
       "name": "分号模式( ; )",
-      "enable": true,
-      "hotkey": "*;",
+      "enable": false,
+      "hotkey": ";",
       "parentID": 0,
       "delay": 0,
       "disableAt": "",
@@ -1406,7 +1544,7 @@
     {
       "id": 14,
       "name": "句号模式( . )",
-      "enable": true,
+      "enable": false,
       "hotkey": "*.",
       "parentID": 0,
       "delay": 0,
@@ -1569,8 +1707,8 @@
     {
       "id": 16,
       "name": "鼠标右键",
-      "enable": true,
       "hotkey": "RButton",
+      "enable": false,
       "parentID": 0,
       "delay": 0,
       "disableAt": "",
@@ -1936,8 +2074,8 @@
           {
             "windowGroupID": 0,
             "actionTypeID": 2,
-            "comment": "label:20",
-            "actionValueID": 4
+            "comment": "重启(带确认)",
+            "actionValueID": 101
           }
         ],
         "rex": [
@@ -1946,6 +2084,15 @@
             "actionTypeID": 2,
             "comment": "label:23",
             "actionValueID": 7
+          }
+        ],
+        "sd": [
+          {
+            "windowGroupID": 0,
+            "actionTypeID": 1,
+            "winTitle": "SD.bat ahk_class CASCADIA_HOSTING_WINDOW_CLASS",
+            "target": "G:\\Projects\\19AI\\AIGC\\sd.webui\\run.bat",
+            "workingDir": "G:\\Projects\\19AI\\AIGC\\sd.webui"
           }
         ],
         "se": [
@@ -1980,6 +2127,25 @@
             "comment": "Spotify 应用",
             "winTitle": "ahk_exe Spotify.exe",
             "target": "shortcuts\\Spotify.lnk"
+          }
+        ],
+        "td": [
+          {
+            "windowGroupID": 0,
+            "actionTypeID": 1,
+            "comment": "通达信",
+            "winTitle": "ahk_exe tdxw.exe",
+            "target": "S:\\StockProgram\\通达信犀牛股\\TDX_xili\\tdxw.exe"
+          }
+        ],
+        "th": [
+          {
+            "windowGroupID": 0,
+            "actionTypeID": 1,
+            "comment": "同花顺",
+            "winTitle": "ahk_exe D:\\Programs\\同花顺软件\\同花顺\\hexin.exe",
+            "target": "shortcuts\\同花顺.lnk",
+            "detectHiddenWindow": true
           }
         ],
         "tm": [
@@ -2028,8 +2194,8 @@
     },
     {
       "id": 3,
-      "name": "Abbreviation",
-      "enable": true,
+      "name": "缩写功能",
+      "enable": false,
       "hotkey": "semicolonAbbr",
       "parentID": 0,
       "delay": 0,
@@ -2264,8 +2430,8 @@
         "value": "C:\\ProgramData\\Microsoft\\Windows\\Start Menu\\Programs\\"
       }
     ],
-    "startup": false,
     "language": "",
+    "startup": true,
     "keyMapping": "",
     "keyboardLayout": "1 2 3 4 5 6 7 8 9 0\nq w e r t y u i o p\na s d f g h j k l ;\nz x c v b n m , . /\nspace enter backspace - [ ' singlePress"
   }

@@ -9,7 +9,7 @@ buildServer:
 	cp -r config-server/templates bin/templates
 
 buildClient:
-	cd config-ui; npm run build
+	cd config-ui; pnpm run build
 	rm -f config-ui/tsconfig.tsbuildinfo
 	cd config-ui/dist/assets; rm -f *.woff *.eot *.ttf
 
