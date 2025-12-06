@@ -10,6 +10,8 @@ import (
 )
 
 func GenerateScripts(config *Config) {
+	preprocess(config)
+
 	if err := SaveAHK(config, "./templates/MyKeymap.tmpl", "../bin/MyKeymap.ahk"); err != nil {
 		panic(err)
 	}
@@ -19,6 +21,16 @@ func GenerateScripts(config *Config) {
 	// if err := SaveAHK(config, "./templates/CustomShellMenu.ahk", "../bin/CustomShellMenu.ahk"); err != nil {
 	// 	panic(err)
 	// }
+}
+
+func preprocess(cfg *Config) {
+	// 添加一个隐藏的全局热键, 且免疫 suspend, 否则 ahk 的 suspend 会把键盘钩子临时移除
+	for _, km := range cfg.Keymaps {
+		if km.ID == 1 {
+			km.Hotkeys["!f17"] = []Action{{TypeID: 9, ValueID: 2}}
+			return
+		}
+	}
 }
 
 func SaveAHK(data *Config, templateFile, outputFile string) error {
@@ -56,16 +68,17 @@ func SaveAHK(data *Config, templateFile, outputFile string) error {
 }
 
 var TemplateFuncMap = template.FuncMap{
-	"contains":        strings.Contains,
-	"concat":          concat,
-	"join":            join,
-	"ahkString":       ahkString,
-	"escapeAhkHotkey": escapeAhkHotkey,
-	"actionToHotkey":  actionToHotkey,
-	"abbrToCode":      abbrToCode,
-	"sortHotkeys":     sortHotkeys,
-	"divide":          divide,
-	"renderKeymap":    renderKeymap,
+	"contains":             strings.Contains,
+	"concat":               concat,
+	"join":                 join,
+	"ahkString":            ahkString,
+	"escapeAhkHotkey":      escapeAhkHotkey,
+	"actionToHotkey":       actionToHotkey,
+	"abbrToCode":           abbrToCode,
+	"sortHotkeys":          sortHotkeys,
+	"divide":               divide,
+	"renderKeymap":         renderKeymap,
+	"GroupDisableMyKeymap": GroupDisableMyKeymap,
 }
 
 func divide(a, b int) string {
@@ -87,6 +100,7 @@ func join(sep string, elems []interface{}) string {
 func ahkString(s string) string {
 	s = strings.ReplaceAll(s, "`", "``")
 	s = strings.ReplaceAll(s, "\"", "`\"")
+	s = strings.ReplaceAll(s, " ;", " `;") // 空格后的分号会被 ahk 解释为注释
 	return `"` + s + `"`
 }
 
@@ -147,6 +161,9 @@ func substr(input string, start int, length int) string {
 }
 
 func renderKeymap(km Keymap) string {
+	if "" == strings.TrimSpace(km.Hotkey) {
+		return ""
+	}
 	var buf strings.Builder
 
 	// ; Capslock + F
@@ -158,10 +175,11 @@ func renderKeymap(km Keymap) string {
 	if containsOnlyModifier(km.Hotkey) {
 		hotkey = "customHotkeys"
 	}
+	s := ahkString
 	if km.ParentID == 0 {
-		line += fmt.Sprintf("NewKeymap(%s, %s, %s)\n", ahkString(hotkey), ahkString(km.Name), ahkString(divide(km.Delay, 1000)))
+		line += fmt.Sprintf("NewKeymap(%s, %s, %s, %s)\n", s(hotkey), s(km.Name), s(divide(km.Delay, 1000)), s(Cfg.getKeymapDisableAt(km.ID)))
 	} else {
-		line += fmt.Sprintf("AddSubKeymap(km%d, %s, %s)\n", km.ParentID, ahkString(hotkey), ahkString(km.Name))
+		line += fmt.Sprintf("AddSubKeymap(km%d, %s, %s, %s)\n", km.ParentID, s(hotkey), s(km.Name), s(divide(km.Delay, 1000)))
 	}
 	buf.WriteString(line)
 
@@ -186,5 +204,15 @@ func renderKeymap(km Keymap) string {
 }
 
 func containsOnlyModifier(hotkey string) bool {
-	return strings.Trim(hotkey, "#!^+<>*~$") == ""
+	hotkey = strings.TrimSpace(hotkey)
+	return hotkey != "" && strings.Trim(hotkey, "#!^+<>*~$") == ""
+}
+
+func GroupDisableMyKeymap(groups []WindowGroup) string {
+	for _, g := range groups {
+		if g.ID == -1 {
+			return groupToWinTile(g)
+		}
+	}
+	return ahkString("")
 }

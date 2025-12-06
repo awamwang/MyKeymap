@@ -1,6 +1,8 @@
 package main
 
 import (
+	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-contrib/static"
@@ -33,7 +35,12 @@ func main() {
 	debug := len(os.Args) == 2 && os.Args[1] == "debug"
 
 	if !debug {
-		go matrix.DigitalRain(hasError, rainDone)
+		if hideMatrix() {
+			close(rainDone)
+			fmt.Println("MyKeymap config server is running...")
+		} else {
+			go matrix.DigitalRain(hasError, rainDone)
+		}
 	}
 	if debug {
 		hasError = nil
@@ -77,7 +84,14 @@ func server(hasError chan<- struct{}, rainDone <-chan struct{}, debug bool) {
 	}
 
 	if !debug {
-		go openBrowser(ln.Addr())
+		go func() {
+			err := openBrowser(ln.Addr())
+			if err != nil {
+				hasError <- struct{}{}
+				<-rainDone
+				fmt.Println("Error:", err.Error())
+			}
+		}()
 	}
 
 	err = router.RunListener(ln)
@@ -89,13 +103,13 @@ func server(hasError chan<- struct{}, rainDone <-chan struct{}, debug bool) {
 }
 
 //goland:noinspection HttpUrlsUsage
-func openBrowser(addr net.Addr) {
+func openBrowser(addr net.Addr) error {
 	time.Sleep(600 * time.Millisecond)
 	if addr, ok := addr.(*net.TCPAddr); ok {
-		_ = exec.Command("cmd", "/c", "start", fmt.Sprintf("http://localhost:%d", addr.Port)).Start()
-		return
+		// _ = exec.Command("cmd", "/c", "start", fmt.Sprintf("http://localhost:%d", addr.Port)).Start()
+		return exec.Command("C:\\Windows\\System32\\rundll32.exe", "url.dll,FileProtocolHandler", fmt.Sprintf("http://localhost:%d", addr.Port)).Start()
 	}
-	_ = exec.Command("cmd", "/c", "start", "http://"+addr.String()).Start()
+	return errors.New("addr is not tcp")
 }
 
 func indexHandler(c *gin.Context) {
@@ -251,4 +265,24 @@ func saveHelpPageHtml(html string) {
 	if err != nil {
 		panic(err)
 	}
+}
+
+func hideMatrix() bool {
+	var config struct {
+		Options struct {
+			HideMatrix bool `json:"hideMatrix"`
+		} `json:"options"`
+	}
+
+	data, err := os.ReadFile("../data/config.json")
+	if err != nil {
+		return false
+	}
+
+	err = json.Unmarshal(data, &config)
+	if err != nil {
+		return false
+	}
+
+	return config.Options.HideMatrix
 }

@@ -6,17 +6,15 @@
  */
 TrayMenuHandler(ItemName, ItemPos, MyMenu) {
   switch ItemName {
-    case "退出":
+    case Translation().menu_exit:
       MyKeymapExit()
-    case "暂停":
+    case Translation().menu_pause:
       MyKeymapToggleSuspend()
-    case "重启程序":
+    case Translation().menu_reload:
       MyKeymapReload()
-    case "打开设置":
+    case Translation().menu_settings:
       MyKeymapOpenSettings()
-    case "帮助文档":
-      Run("https://xianyukang.com/MyKeymap.html")
-    case "查看窗口标识符":
+    case Translation().menu_window_spy:
       run("MyKeymap.exe /script bin\WindowSpy.ahk")
   }
 }
@@ -35,16 +33,24 @@ MyKeymapExit(ExitReason?, ExitCode?) {
  * 暂停
  */
 MyKeymapToggleSuspend() {
-  Suspend(!A_IsSuspended)
-  if (A_IsSuspended) {
-    TraySetIcon("./bin/icons/logo2.ico")
-    A_TrayMenu.Check("暂停")
-    Tip("  暂停 MyKeymap  ", -500)
-  } else {
-    TraySetIcon("./bin/icons/logo.ico")
-    A_TrayMenu.UnCheck("暂停")
-    Tip("  恢复 MyKeymap  ", -500)
+  fn() {
+    Suspend(!A_IsSuspended)
+    if (A_IsSuspended) {
+      TraySetIcon("./bin/icons/logo2.ico")
+      A_TrayMenu.Check(Translation().menu_pause)
+      Tip(Translation().mykeymap_off, -500)
+    } else {
+      TraySetIcon("./bin/icons/logo.ico")
+      A_TrayMenu.UnCheck(Translation().menu_pause)
+      Tip(Translation().mykeymap_on, -500)
+    }
   }
+
+  if A_PriorKey == "RButton" {
+    SetTimer(fn, -200)
+    return
+  }
+  fn()
 }
 
 /**
@@ -79,6 +85,10 @@ MyKeymapReload() {
  * @returns {string} 
  */
 GetProcessName() {
+  return GetActiveProcess("name")
+}
+
+GetActiveProcess(type) {
   fn := (winTitle) => (WinGetProcessName(winTitle) == 'ApplicationFrameHost.exe')
 
   winTitle := "A"
@@ -88,7 +98,15 @@ GetProcessName() {
     until !bool && winTitle := hCtrl
   }
 
-  return WinGetProcessName(winTitle)
+  if type == "name" {
+    return WinGetProcessName(winTitle)
+  }
+  if type == "id" {
+    return WinGetPID(winTitle)
+  }
+  if type == "path" {
+    return WinGetProcessPath(winTitle)
+  }
 }
 
 /**
@@ -138,7 +156,7 @@ CompleteProgramPath(target) {
 ShellRun(target, arguments?, directory?, operation?, show?) {
   static VT_UI4 := 0x13, SWC_DESKTOP := ComValue(VT_UI4, 0x8)
   ComObject("Shell.Application").Windows.Item(SWC_DESKTOP).Document.Application
-    .ShellExecute(target, arguments?, directory?, operation?, show?)
+  .ShellExecute(target, arguments?, directory?, operation?, show?)
 }
 
 ActivateDesktop() {
@@ -329,6 +347,15 @@ ReplaceSelectedText(&target, &args) {
     text := ""
   }
 
+  ; 如果是划词搜索且选中了 http 链接那么跳转链接
+  if InStr(args, "https://") == 1 || InStr(target, "https://") == 1 {
+    if InStr(text, "https://") || InStr(text, "http://") {
+      args := InStr(args, "{selected}") ? Trim(text) : args
+      target := InStr(target, "{selected}") ? Trim(text) : target
+      return 1
+    }
+  }
+
   if InStr(args, "://") || InStr(target, "://") {
     text := URIEncode(text)
   }
@@ -349,7 +376,7 @@ GetSelectedText() {
 
   Send("^c")
   if not (ClipWait(0.4)) {
-    Tip("没有选中的文本或文件", -700)
+    Tip(Translation().no_items_selected, -700)
     return
   }
   text := A_Clipboard
@@ -427,8 +454,7 @@ PostMessageToCpasAbbr(msg, wParam := 0) {
  * 关闭顶部命令提示框
  */
 HideCaspAbbr() {
-  HIDE_COMMAND_INPUT := 0x0400 + 0x0002
-  PostMessageToCpasAbbr(HIDE_COMMAND_INPUT)
+  PostMessageToCpasAbbr(0x0400 + 0x0002)
 }
 
 /**
@@ -437,8 +463,11 @@ HideCaspAbbr() {
  * @param char 发送的字符
  */
 PostCharToCaspAbbr(ih?, char?) {
-  static SEND_CHAR := 0x0102
-  PostMessageToCpasAbbr(SEND_CHAR, Ord(SubStr(char, -1)))
+  PostMessageToCpasAbbr(0x0102, Ord(SubStr(char, -1)))
+}
+
+PostBackspaceToCaspAbbr(ih, vk, sc) {
+  PostMessageToCpasAbbr(0x0102, 0x8)
 }
 
 /**
@@ -567,4 +596,29 @@ PasteToPrograms(text) {
  */
 NotActiveWin() {
   return IsDesktop() || not WinExist("A")
+}
+
+; 依次激活窗口(params*) {
+;   for index, param in params {
+;     if !WinActive(param) && WinExist(param) {
+;       WinActivate
+;       return
+;     }
+;   }
+; }
+
+ShowFileInFoler(filepath) {
+  ; Run Format('explorer.exe /select,"{1}"', filepath)
+  DllCall("shell32\SHParseDisplayName", "Str", filepath, "Ptr", 0, "Ptr*", &pidl := 0, "UInt", 0, "Ptr", 0, "HRESULT")
+  DllCall("shell32\SHOpenFolderAndSelectItems", "Ptr", pidl, "UInt", 0, "Ptr", 0, "UInt", 0, "HRESULT")
+  DllCall("ole32\CoTaskMemFree", "Ptr", pidl)
+}
+
+Join(sep, params*) {
+  str := ""
+
+  for index, param in params
+    str .= sep . param
+
+  return SubStr(str, StrLen(sep) + 1)
 }

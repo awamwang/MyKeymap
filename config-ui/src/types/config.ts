@@ -54,7 +54,7 @@ export interface WindowGroup {
   id: number
   name: string
   value: string
-  conditionType: number
+  conditionType?: number
 }
 
 export type PathVariable = {
@@ -70,6 +70,7 @@ export interface Options {
   pathVariables: Array<PathVariable>
   customShellMenu: string
   startup: boolean
+  language: string
   keyMapping: string
   keyboardLayout: string
   commandInputSkin: any

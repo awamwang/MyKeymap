@@ -2,8 +2,8 @@ package script
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
-	"github.com/goccy/go-json"
 	"os"
 	"sort"
 	"strings"
@@ -20,13 +20,14 @@ type Config struct {
 }
 
 type Keymap struct {
-	ID       int                 `json:"id"`
-	Name     string              `json:"name"`
-	Enable   bool                `json:"enable"`
-	Hotkey   string              `json:"hotkey"`
-	ParentID int                 `json:"parentID"`
-	Delay    int                 `json:"delay"`
-	Hotkeys  map[string][]Action `json:"hotkeys"`
+	ID        int                 `json:"id"`
+	Name      string              `json:"name"`
+	Enable    bool                `json:"enable"`
+	Hotkey    string              `json:"hotkey"`
+	ParentID  int                 `json:"parentID"`
+	Delay     int                 `json:"delay"`
+	DisableAt string              `json:"disableAt"`
+	Hotkeys   map[string][]Action `json:"hotkeys"`
 }
 
 type Action struct {
@@ -107,6 +108,25 @@ func SaveConfigFile(config *Config) {
 	}
 }
 
+func groupName(id int, prefix ...string) string {
+	p := "MY_WINDOW_GROUP_"
+	if len(prefix) > 0 {
+		p = prefix[0]
+	}
+	if id < 0 {
+		return fmt.Sprintf(p+"_%d", -id)
+	}
+	return fmt.Sprintf(p+"%d", id)
+}
+
+func groupToWinTile(g WindowGroup) string {
+	if lines := notBlankLines(g.Value); len(lines) > 1 {
+		return fmt.Sprintf(`"ahk_group %s"`, groupName(g.ID))
+	} else {
+		return fmt.Sprintf(`"%s"`, strings.TrimSpace(g.Value))
+	}
+}
+
 func (c *Config) GetWinTitle(a Action) (winTitle string, conditionType int) {
 	if a.WindowGroupID == 0 {
 		return `""`, 0
@@ -114,15 +134,12 @@ func (c *Config) GetWinTitle(a Action) (winTitle string, conditionType int) {
 
 	for _, g := range c.Options.WindowGroups {
 		if g.ID == a.WindowGroupID {
+			// 5 表示自定义的 HotIf 表达式
 			if g.ConditionType == 5 {
 				return fmt.Sprintf(`'%s'`, g.Value), 5
 			}
 
-			v := strings.TrimSpace(g.Value)
-			if strings.Index(v, "\n") >= 0 {
-				return fmt.Sprintf(`"ahk_group MY_WINDOW_GROUP_%d"`, g.ID), g.ConditionType
-			}
-			return fmt.Sprintf(`"%s"`, v), g.ConditionType
+			return groupToWinTile(g), g.ConditionType
 		}
 	}
 	return `""`, 0

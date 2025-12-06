@@ -19,12 +19,12 @@ WinSpyGui() {
     try TraySetIcon "./icons/logo.ico"
     DllCall("shell32\SetCurrentProcessExplicitAppUserModelID", "wstr", "AutoHotkey.WindowSpy")
 
-    oGui := Gui("AlwaysOnTop Resize MinSize +DPIScale", "")
+    oGui := Gui("AlwaysOnTop Resize MinSize +DPIScale", "当前窗口的标识符")
     oGui.OnEvent("Close", WinSpyClose)
     oGui.OnEvent("Size", WinSpySize)
 
     oGui.BackColor := "FFFFFF"
-    oGui.SetFont("s11")
+    oGui.SetFont("s11", "Microsoft YaHei")
     oGui.Add("Text", , "程序的窗口标识符有下面三种:")
     oGui.Add("Text", , "▷ 窗口名:      无标题 - 记事本")
     oGui.Add("Text", , "▷ 进程名:      ahk_exe notepad.exe")
@@ -34,7 +34,7 @@ WinSpyGui() {
     oGui.Add("Text", , "➤ 也可以组合两个标识符: 记事 ahk_exe notepad.exe (更精确")
     oGui.Add("Text", , "")
 
-    oGui.Add("Text", , "当前窗口的三种标识符:")
+    oGui.Add("Text", , "Window Title, Class and Process:")
     oGui.Add("Edit", "xm w640 r4 ReadOnly -Wrap vCtrl_Title")
     ; oGui.Add("Text",,"当前鼠标位置:")
     ; oGui.Add("Edit","w640 r4 ReadOnly vCtrl_MousePos")
@@ -44,7 +44,7 @@ WinSpyGui() {
     oGui.Add("Checkbox", "yp+20 xp+400 h15 w240 Left vCtrl_FollowMouse", "跟随鼠标 (可按 Ctrl 暂停刷新)")
 
     oGui.Show("NoActivate")
-    WinGetClientPos(&x_temp, &y_temp2, , , "ahk_id " oGui.hwnd)
+    ;WinGetClientPos(&x_temp, &y_temp2, , , "ahk_id " oGui.hwnd)
 
     ; oGui.horzMargin := x_temp*96//A_ScreenDPI - 320 ; now using oGui.MarginX
 

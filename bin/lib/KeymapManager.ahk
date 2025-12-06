@@ -3,23 +3,29 @@
   static Stack := Array(this.GlobalKeymap)
   static L := { toLock: false, locked: false, show: false, toggle: false }
 
-  static NewKeymap(globalHotkey, name, delay) {
+  static NewKeymap(globalHotkey, name, delay, disableAt) {
     if globalHotkey == "customHotkeys" {
       return this.GlobalKeymap
     }
 
-    ; 分配全局热键激活指定 keymap
-    return this.AddSubKeymap(this.GlobalKeymap, globalHotkey, name, delay)
+    ; 在全局 keymap 中添加一个 globalHotkey, 用来激活指定的 keymap, 例如 CapsLock 模式
+    ; 让这些 globalHotkey 在特定程序中被禁用, 也就实现了 MyKeymap 在特定程序中被禁用
+    winTitle := this.GlobalKeymap.DisabledAt
+    if disableAt {
+      winTitle := disableAt
+    }
+    conditionType := winTitle ? 3 : 0
+    return this.AddSubKeymap(this.GlobalKeymap, globalHotkey, name, delay, winTitle, conditionType)
   }
 
-  static AddSubKeymap(parent, hk, name := "", delay := 0) {
+  static AddSubKeymap(parent, hk, name := "", delay := 0, winTitle := "", conditionType := 0) {
     waitKey := ExtractWaitKey(hk)
     subKeymap := Keymap(name, waitKey, hk, delay)
     handler(thisHotkey) {
       this.Activate(subKeymap)
       this._postHandler()
     }
-    parent.Map(hk, handler)
+    parent.Map(hk, handler, , winTitle, conditionType)
     return subKeymap
   }
 
@@ -29,17 +35,17 @@
       ih := InputHook("T" keymap.delay)
       ih.KeyOpt("{All}", "E")
       ih.Start()
-      Suspend
+      ; Suspend
       while true {
         if !ih.InProgress && ih.EndReason == "Timeout" {
-          Suspend
+          ; Suspend
           break
         }
         if !GetKeyState(keymap.WaitKey, "P") || (!ih.InProgress && ih.EndReason != "Timeout") {
           ih.Stop()
           Send("{blind}{" keymap.WaitKey "}{" ih.EndKey "}")
           KeyWait(keymap.WaitKey)
-          Suspend
+          ; Suspend
           return true
         }
       }
@@ -73,7 +79,7 @@
 
     ; 未锁定
     if !this.L.locked {
-      this.ShowToolTip("已锁定 " this.L.toLock.Name, this.L.show)
+      this.ShowToolTip("Lock " this.L.toLock.Name, this.L.show)
       this._lock()
       ; 锁定时注册个函数, 用于自动关闭锁定, TaskSwitch 模式会用到这个
       if this.L.locked.AfterLocked {
@@ -88,7 +94,7 @@
       if !this.L.toggle {
         return
       }
-      this.ShowToolTip("取消锁定", this.L.show)
+      this.ShowToolTip("Lock: Off", this.L.show)
       this.Unlock()
       return
     }
@@ -142,6 +148,45 @@
     }
     Tip(msg)
   }
+
+  class ActionList {
+    actions := []
+    static conditionMap := Map(
+      0, _ => true,
+      1, winTitle => WinActive(winTitle),
+      2, winTitle => WinExist(winTitle),
+      3, winTitle => !WinActive(winTitle),
+      4, winTitle => !WinExist(winTitle),
+    )
+
+    Run() {
+      m := KeymapManager.ActionList.conditionMap
+      for a in this.actions {
+        if !m.Has(a.conditionType) {
+          continue
+        }
+        if a.conditionType == 0 && !IsSet(fn) {
+          fn := a.fn
+          continue
+        }
+        if m.Get(a.conditionType)(a.winTitle) {
+          fn := a.fn
+          break
+        }
+      }
+      if IsSet(fn) {
+        fn()
+      }
+    }
+
+    Add(conditionType, winTitle, fn) {
+      this.actions.Push({
+        conditionType: conditionType,
+        winTitle: winTitle,
+        fn: fn,
+      })
+    }
+  }
 }
 
 
@@ -150,7 +195,7 @@ class Keymap {
     this.Name := name
     this.WaitKey := waitKey
     this.Hotkey := hotkey
-    this.SinglePressAction := NoOperation
+    this.SinglePressAction := KeymapManager.ActionList()
     this.M := Map()
     this.M.CaseSense := "Off"
     this.ToggleLock := this._lockOrUnlock.Bind(this)
@@ -175,33 +220,32 @@ class Keymap {
       if this.enabled {
         MsgBox "bug"
       }
-      this.hotifContext(this.winTitle, this.conditionType)
+      this.hotifContext(this.winTitle, this.conditionType, true)
       Hotkey(this.rawName, this.handler, "On" this.options)
       this.enabled := true
-      HotIf()
+      this.hotifContext(this.winTitle, this.conditionType, false)
     }
 
     Disable() {
       if !this.enabled {
         MsgBox "bug"
       }
-      this.hotifContext(this.winTitle, this.conditionType)
+      this.hotifContext(this.winTitle, this.conditionType, true)
       Hotkey(this.rawName, "Off")
       this.enabled := false
-      HotIf()
+      this.hotifContext(this.winTitle, this.conditionType, false)
     }
 
-    hotifContext(winTitle, conditionType) {
-      if winTitle == "" {
-        return
+    hotifContext(winTitle, conditionType, begin) {
+      if winTitle == "" || conditionType == 0 {
+        HotIf()
       }
       switch conditionType {
-        case 0: return
-        case 1: HotIfWinactive(winTitle)
-        case 2: HotIfWinExist(winTitle)
-        case 3: HotIfWinNotactive(winTitle)
-        case 4: HotIfWinNotExist(winTitle)
-        case 5: HotIf(winTitle)
+        case 1: begin ? HotIfWinactive(winTitle) : HotIfWinactive()
+        case 2: begin ? HotIfWinExist(winTitle) : HotIfWinExist()
+        case 3: begin ? HotIfWinNotactive(winTitle) : HotIfWinNotactive()
+        case 4: begin ? HotIfWinNotExist(winTitle) : HotIfWinNotExist()
+        case 5: begin ? HotIf(winTitle) : HotIf()
       }
     }
   }
@@ -210,7 +254,7 @@ class Keymap {
     wrapper := Keymap._wrapHandler(handler, keymapToLock)
     ; 用 = 表示忽略大小写进行字符串比较
     if hotkeyName = "singlePress" {
-      this.SinglePressAction := wrapper
+      this.SinglePressAction.Add(conditionType, winTitle, wrapper.Bind("singlePress"))
       return
     }
     ; If Action is a hotkey name, its original function is used;
@@ -257,7 +301,7 @@ class Keymap {
     if !InStr(this.Hotkey, "button") {
       KeyWait(this.WaitKey)
       if (A_PriorKey = this.WaitKey && (A_TickCount - startTick < 450)) {
-        this.SinglePressAction()
+        this.SinglePressAction.Run()
       }
       return
     }
@@ -281,7 +325,7 @@ class Keymap {
 
     if (thisHotkey = A_ThisHotkey && (A_TickCount - startTick < 450)) {
       if !mouseMoved {
-        this.SinglePressAction()
+        this.SinglePressAction.Run()
       } else {
         Send("{blind}{" this.WaitKey " Down}")
         KeyWait(this.WaitKey)
@@ -375,9 +419,20 @@ class Keymap {
   }
 
   RemapKey(a, b, winTitle := "", conditionType := 0) {
+    if b ~= "i)control|ctrl|shift|alt|win" {
+      downHandler(thisHotkey) {
+        HoldDownModifierKey(b)
+      }
+      this.Map("*" a, downHandler, , winTitle, conditionType)
+      return
+    }
+
     ; Remap 容易让按键卡在按下状态, 改成 Send 好一点
     hk := "*" a
-    keys := "{blind}{" b "}"
+    keys := b
+    if keys ~= "^\w+$" {
+      keys := "{blind}{" b "}"
+    }
     this.SendKeys(hk, keys, winTitle, conditionType)
 
     ; downHandler(thisHotkey) {
@@ -450,14 +505,14 @@ class MouseKeymap extends Keymap {
   _moveMouse(directionX, directionY, thisHotkey) {
     key := ExtractWaitKey(thisHotkey)
     MouseMove(directionX * this.single, directionY * this.single, 0, "R")
-    (this.mouseTip && this.mouseTip.Show("", 20, 16))
+    (this.mouseTip && this.mouseTip.Show())
     release := KeyWait(key, this.delay1)
     if release {
       return
     }
     while !release {
       MouseMove(directionX * this.repeat, directionY * this.repeat, 0, "R")
-      (this.mouseTip && this.mouseTip.Show("", 20, 16))
+      (this.mouseTip && this.mouseTip.Show())
       release := KeyWait(key, this.delay2)
     }
   }
@@ -472,6 +527,9 @@ class MouseKeymap extends Keymap {
       case 2: MouseClick("WheelDown", , , this.scrollOnceLineCount)
       case 3: MouseClick("WheelLeft", , , this.scrollOnceLineCount)
       case 4: MouseClick("WheelRight", , , this.scrollOnceLineCount)
+    }
+    if InStr(key, "Wheel") {
+      return ; 滚轮按钮没有 up 事件所以不能 KeyWait
     }
     release := KeyWait(key, this.scrollDelay1)
     if release {
@@ -493,6 +551,10 @@ class MouseKeymap extends Keymap {
     if !this.slowKeymap {
       ; 用户想点击后不退出鼠标模式
       if keepMouseMode {
+        return
+      }
+      ; 进行解锁的前提是没有按下其他模式, 否则会两次禁用同一热键
+      if KeymapManager.Stack.Length > 1 {
         return
       }
       KeymapManager.Unlock()
@@ -587,7 +649,7 @@ class TaskSwitchKeymap extends Keymap {
 
   DeactivateTaskSwitch() {
     ; 先等 AltTab 窗口出现, 再等它消失, 然后解锁
-    notTimedOut := WinWaitActive("ahk_group TASK_SWITCH_GROUP", , 1)
+    notTimedOut := WinWaitActive("ahk_group TASK_SWITCH_GROUP", , 0.5)
     if (notTimedOut) {
       WinWaitNotActive("ahk_group TASK_SWITCH_GROUP")
     }

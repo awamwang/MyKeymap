@@ -65,8 +65,10 @@ func abbrToCode(abbrMap map[string][]Action) string {
 				s.WriteString(fmt.Sprintf("      %s\n", call))
 				continue
 			}
-			s.WriteString(fmt.Sprintf("      if matchWinTitleCondition(%s, %d)\n", winTitle, conditionType))
+			s.WriteString(fmt.Sprintf("      if matchWinTitleCondition(%s, %d) {\n", winTitle, conditionType))
 			s.WriteString(fmt.Sprintf("        %s\n", call))
+			s.WriteString(fmt.Sprintf("        return\n"))
+			s.WriteString(fmt.Sprintf("      }\n"))
 		}
 	}
 	return s.String()
@@ -118,6 +120,13 @@ func sendKeys6(a Action, inAbbrContext bool) string {
 	var res []string
 	lines := strings.Split(a.KeysToSend, "\n")
 	for _, line := range lines {
+		if len(strings.TrimSpace(line)) == 0 {
+			continue
+		}
+		if strings.HasPrefix(line, "ahk:") {
+			res = append(res, strings.TrimSpace(line[4:]))
+			continue
+		}
 		if strings.HasPrefix(line, "sleep ") || strings.HasPrefix(line, "Sleep ") {
 			res = append(res, fmt.Sprintf(`Sleep(%s)`, line[6:]))
 			continue
@@ -125,6 +134,10 @@ func sendKeys6(a Action, inAbbrContext bool) string {
 		line = toAHKFuncArg(line)
 		res = append(res, fmt.Sprintf(`Send(%s)`, line))
 	}
+	if len(res) == 0 {
+		return ""
+	}
+
 	call := strings.Join(res, ", ")
 
 	if inAbbrContext {
@@ -237,16 +250,17 @@ func windowActions3(a Action, inAbbrContext bool) string {
 
 func systemActions2(a Action, inAbbrContext bool) string {
 	callMap := map[int]string{
-		1: `SystemLockScreen()`,
-		2: `SystemSleep()`,
-		9: `SystemSleep(true)`,
-		3: `SystemShutdown()`,
-		4: `SystemReboot()`,
-		10: `SystemReboot(true)`,
-		5: `SoundControl()`,
-		6: `BrightnessControl()`,
-		7: `SystemRestartExplorer()`,
-		8: `CopySelectedAsPlainText()`,
+		1:  `SystemLockScreen()`,
+		2:  `SystemSleep()`,
+		3:  `SystemShutdown()`,
+		4:  `SystemReboot()`,
+		5:  `SoundControl()`,
+		6:  `BrightnessControl()`,
+		7:  `SystemRestartExplorer()`,
+		8:  `CopySelectedAsPlainText()`,
+		9:  `MuteActiveApp()`,
+		10: `ShowActiveProcessInFolder()`,
+		101: `SystemReboot(true)`,
 	}
 	if call, ok := callMap[a.ValueID]; ok {
 		if inAbbrContext {

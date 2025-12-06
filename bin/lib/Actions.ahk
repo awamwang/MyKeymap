@@ -43,6 +43,9 @@ ActivateOrRun(winTitle := "", target := "", args := "", workingDir := "", admin 
     return
 
   ; 程序没有运行，运行程序
+  if not target {
+    return
+  }
   workingDir := workingDir ? workingDir : A_WorkingDir
   RunPrograms(target, args, workingDir, admin, runInBackground)
 }
@@ -97,13 +100,20 @@ LoopRelatedWindows(winTitle?, hwnds?) {
 }
 
 /**
- * CapsLock缩写框
+ * CapsLock 命令框
  */
 EnterCapslockAbbr(capsHook) {
   static WM_USER := 0x0400
   static SHOW_COMMAND_INPUT := WM_USER + 0x0001
   static HIDE_COMMAND_INPUT := WM_USER + 0x0002
   static CANCEL_COMMAND_INPUT := WM_USER + 0x0003
+
+  ; 高级键盘设置 > 输入语言热键, 用户勾选了用 Shift 键关闭大写
+  ; if GetKeyState("Shift", "P") {
+  ;   Tip("bug: Shift key is pressed down")
+  ;   return
+  ; }
+
   ; 显示命令框窗口
   PostMessageToCpasAbbr(SHOW_COMMAND_INPUT)
 
@@ -131,7 +141,13 @@ EnterCapslockAbbr(capsHook) {
 EnterSemicolonAbbr(semiHook, semiHookAbbrWindow) {
   semiHookAbbrWindow.Show(" ")
   endReason := StartInputHook(semiHook)
-  semiHookAbbrWindow.Hide
+  if (InStr(endReason, "Match")) {
+    char := SubStr(semiHook.Match, -1)
+    semiHookAbbrWindow.Show(char, true)
+    SetTimer(() => semiHookAbbrWindow.Hide(), -100)
+  } else {
+    semiHookAbbrWindow.Hide()
+  }
 
   if (semiHook.Match)
     ExecSemicolonAbbr(semiHook.Match)
@@ -171,7 +187,7 @@ CenterAndResizeWindow(width, height) {
 
   ; 在 mousemove 时需要 PER_MONITOR_AWARE (-3), 否则当两个显示器有不同的缩放比例时, mousemove 会有诡异的漂移
   ; 在 winmove 时需要 UNAWARE (-1), 这样即使写死了窗口大小为 1200x800, 系统会帮你缩放到合适的大小
-  DllCall("SetThreadDpiAwarenessContext", "ptr", -1, "ptr")
+  try DllCall("SetThreadDpiAwarenessContext", "ptr", -1, "ptr")
 
   WinExist("A")
   if (WindowMaxOrMin())
@@ -190,7 +206,7 @@ CenterAndResizeWindow(width, height) {
   winY := t + (h - winH) / 2
 
   WinMove(winX, winY, winW, winH)
-  DllCall("SetThreadDpiAwarenessContext", "ptr", -3, "ptr")
+  try DllCall("SetThreadDpiAwarenessContext", "ptr", -3, "ptr")
 }
 
 /**
@@ -225,9 +241,9 @@ ToggleWindowTopMost() {
   value := !(WinGetExStyle("A") & 0x8)
   WinSetAlwaysOnTop(value, "A")
   if value {
-    Tip("已置顶当前窗口")
+    Tip(Translation().always_on_top_on)
   } else {
-    Tip("取消置顶")
+    Tip(Translation().always_on_top_off)
   }
 }
 
@@ -309,7 +325,7 @@ changeTextStyle(color := "#000000", fontFamily := "Iosevka") {
  */
 InsertSpaceBetweenZHAndEn() {
   text := GetSelectedText()
-  text := RegExReplace(text, "([\x{4e00}-\x{9fa5}])(?=[a-zA-Z])|([a-zA-Z])(?=[\x{4e00}-\x{9fa5}])", "$0 ")
+  text := RegExReplace(text, "([\x{4e00}-\x{9fa5}])(?=[a-zA-Z0-9])|([a-zA-Z0-9])(?=[\x{4e00}-\x{9fa5}])", "$0 ")
   PasteToPrograms(text)
 }
 
@@ -444,7 +460,12 @@ SystemRestartExplorer() {
 }
 
 SoundControl() {
-  ActivateOrRun(, "bin\SoundControl.exe")
+  wnd := WinExist("A")
+  if wnd {
+    ActivateOrRun(, "bin\SoundControl.exe", "PreviousWindow " wnd)
+  } else {
+    ActivateOrRun(, "bin\SoundControl.exe")
+  }
 }
 
 BrightnessControl() {
@@ -551,9 +572,50 @@ CopySelectedAsPlainText() {
   A_Clipboard := ""
   Send "^c"
   if !ClipWait(1) {
-    Tip("复制失败")
+    Tip(Translation().copy_failed)
     return
   }
   A_Clipboard := A_Clipboard
-  Tip("复制成功")
+  Tip(Translation().copy_ok)
+}
+
+MuteActiveApp() {
+  code := RunWait("bin\SoundControl.exe ToggleMute " GetActiveProcess("name"))
+  switch code {
+    case 1: Tip(Translation().mute_on)
+    case 2: Tip(Translation().mute_off)
+    default: Tip(Translation().mute_falied)
+  }
+}
+
+ShowActiveProcessInFolder() {
+  try path := GetActiveProcess("path")
+  catch as e {
+    Tip(e.Message)
+    return
+  }
+  ShowFileInFoler(path)
+}
+
+chromeInstance() {
+  static m := Map()
+  key := A_ThisHotkey
+
+  if !m.Has(key) || (m.Has(key) && !WinExist(m.Get(key))) {
+    oldWindow := WinActive("A")
+    Run("C:\Program Files\Google\Chrome\Application\chrome.exe")
+    if !WinWaitNotActive(oldWindow, , 0.2) || !WinWaitActive("ahk_exe chrome.exe", , 0.2) {
+      Tip("启动 chrome 失败")
+      return
+    }
+    m.Set(key, WinActive("A"))
+    return
+  }
+
+  id := WinExist(m.Get(key))
+  if WinActive(id) {
+    WinMinimize(id)
+  } else {
+    WinActivate(id)
+  }
 }

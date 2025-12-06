@@ -1,3 +1,5 @@
+[![en](https://img.shields.io/badge/lang-en-red.svg)](https://github.com/xianyukang/MyKeymap/blob/master/readme.en.md)
+
 # MyKeymap
 
 MyKeymap 是一款基于 [AutoHotkey](https://www.autohotkey.com/) 的键盘映射工具，用于增强 Windows 的键盘输入体验和窗口操作效率。
@@ -13,7 +15,7 @@ MyKeymap 是一款基于 [AutoHotkey](https://www.autohotkey.com/) 的键盘映�
 ## Usage
 
 - [快速入门](https://xianyukang.com/MyKeymap.html#mykeymap-%E7%AE%80%E4%BB%8B) & [视频介绍](https://www.bilibili.com/video/BV1Sf4y1c7p8)
-- [MyKeymap 2.0-beta25](https://wwqw.lanzouj.com/iB5YV1i034cj) ( 提取码 1234 )
+- [MyKeymap 2.0-beta33](https://wwqw.lanzouu.com/irujX2nesore) ( 提取码 1234 )
 
 | ![features](./doc/features.png) | ![夏日大作战](./doc/夏日大作战.gif) |
 | ------------------------------- | ----------------------------------- |

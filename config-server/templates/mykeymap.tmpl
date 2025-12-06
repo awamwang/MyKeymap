@@ -2,6 +2,7 @@
 #SingleInstance Force
 #UseHook true
 
+#include lib/translation.ahk
 #Include lib/Functions.ahk
 #Include lib/Actions.ahk
 #Include lib/KeymapManager.ahk
@@ -13,9 +14,12 @@
 ; ListLines False     ; 也许能提升一点点性能 ( 别抱期待 ), 当有这个需求时再打开试试
 ; #Warn All, Off      ; 也许能提升一点点性能 ( 别抱期待 ), 当有这个需求时再打开试试
 
-DllCall("SetThreadDpiAwarenessContext", "ptr", -3, "ptr") ; 多显示器不同缩放比例会导致问题: https://www.autohotkey.com/boards/viewtopic.php?f=14&t=13810
+try DllCall("SetThreadDpiAwarenessContext", "ptr", -3, "ptr") ; 多显示器不同缩放比例会导致问题: https://www.autohotkey.com/boards/viewtopic.php?f=14&t=13810
 SetMouseDelay 0                                           ; SendInput 可能会降级为 SendEvent, 此时会有 10ms 的默认 delay
 SetWinDelay 0                                             ; 默认会在 activate, maximize, move 等窗口操作后睡眠 100ms
+A_MaxHotkeysPerInterval := 256                            ; 默认 70 可能有点低, 即使没有热键死循环也触发警告
+SendMode "Event"                                          ; 执行 SendInput 的期间会短暂卸载 Hook, 这时候松开引导键会丢失 up 事件, 所以 Event 模式更适合 MyKeymap
+SetKeyDelay 0                                             ; 默认 10 太慢了, https://www.reddit.com/r/AutoHotkey/comments/gd3z4o/possible_unreliable_detection_of_the_keyup_event/
 ProcessSetPriority "High"
 SetWorkingDir("../")
 InitTrayMenu()
@@ -26,28 +30,32 @@ OnExit(MyKeymapExit)
 InitKeymap()
 {
   taskSwitch := TaskSwitchKeymap("e", "d", "s", "f", "c", "space")
-  mouseTip := {{ if .Options.Mouse.ShowTip }}InputTipWindow("{{ .Options.Mouse.TipSymbol }}"){{ else }}false{{ end }}
+  mouseTip := {{ if .Options.Mouse.ShowTip }}InputTipWindow("{{ .Options.Mouse.TipSymbol }}",,,, 20, 16){{ else }}false{{ end }}
   slow := MouseKeymap("slow mouse", {{ .Options.Mouse.KeepMouseMode }}, mouseTip, {{ .Options.Mouse.SlowSingle }}, {{ .Options.Mouse.SlowRepeat }}, "T{{ .Options.Mouse.Delay1 }}", "T{{ .Options.Mouse.Delay2 }}", {{ .Options.Scroll.OnceLineCount }}, "T{{ .Options.Scroll.Delay1 }}", "T{{ .Options.Scroll.Delay2 }}")
   fast := MouseKeymap("fast mouse", {{ .Options.Mouse.KeepMouseMode }}, mouseTip, {{ .Options.Mouse.FastSingle }}, {{ .Options.Mouse.FastRepeat }}, "T{{ .Options.Mouse.Delay1 }}", "T{{ .Options.Mouse.Delay2 }}", {{ .Options.Scroll.OnceLineCount }}, "T{{ .Options.Scroll.Delay1 }}", "T{{ .Options.Scroll.Delay2 }}", slow)
   slow.Map("*space", slow.LButtonUp())
 {{ if .CapslockAbbrEnabled }}
-  capsHook := InputHook("", "{CapsLock}{BackSpace}{Esc}", "{{ .CapslockAbbrKeys }}")
+  capsHook := InputHook("", "{CapsLock}{Esc}", "{{ .CapslockAbbrKeys }}")
   capsHook.KeyOpt("{CapsLock}", "S")
+  capsHook.KeyOpt("{Backspace}", "N")
   capsHook.OnChar := PostCharToCaspAbbr
+  capsHook.OnKeyDown := PostBackspaceToCaspAbbr
   Run("bin\MyKeymap-CommandInput.exe")
 {{ end }}
 {{- if .SemicolonAbbrEnabled }}
-  semiHook := InputHook("", "{CapsLock}{BackSpace}{Esc}{;}", "{{ .SemicolonAbbrKeys }}")
+  semiHook := InputHook("", "{CapsLock}{Esc}{;}", "{{ .SemicolonAbbrKeys }}")
   semiHook.KeyOpt("{CapsLock}", "S")
-  semiHook.OnChar := (ih, char) => semiHookAbbrWindow.Show(char, , , true)
+  semiHook.KeyOpt("{Backspace}", "N")
+  semiHook.OnChar := (ih, char) => semiHookAbbrWindow.Show(char, true)
+  semiHook.OnKeyDown := (ih, vk, sc) => semiHookAbbrWindow.Backspace()
   semiHookAbbrWindow := InputTipWindow()
 {{ end }}
 
   ; 路径变量
 {{ .PathVariables }}
   ; 窗口组
-{{ .WindowGroups -}}
-
+{{ .WindowGroups }}
+  KeymapManager.GlobalKeymap.DisabledAt := {{ GroupDisableMyKeymap .Options.WindowGroups }}
 {{range .EnabledKeymaps}}{{renderKeymap .}}{{end}}
 
   KeymapManager.GlobalKeymap.Enable()
@@ -79,13 +87,12 @@ ExecSemicolonAbbr(command) {
 
 InitTrayMenu() {
   A_TrayMenu.Delete()
-  A_TrayMenu.Add("暂停", TrayMenuHandler)
-  A_TrayMenu.Add("退出", TrayMenuHandler)
-  A_TrayMenu.Add("重启程序", TrayMenuHandler)
-  A_TrayMenu.Add("打开设置", TrayMenuHandler)
-  A_TrayMenu.Add("帮助文档", TrayMenuHandler)
-  A_TrayMenu.Add("查看窗口标识符", TrayMenuHandler)
-  A_TrayMenu.Default := "暂停"
+  A_TrayMenu.Add(Translation().menu_pause, TrayMenuHandler)
+  A_TrayMenu.Add(Translation().menu_exit, TrayMenuHandler)
+  A_TrayMenu.Add(Translation().menu_reload, TrayMenuHandler)
+  A_TrayMenu.Add(Translation().menu_settings, TrayMenuHandler)
+  A_TrayMenu.Add(Translation().menu_window_spy, TrayMenuHandler)
+  A_TrayMenu.Default := Translation().menu_pause
   A_TrayMenu.ClickCount := 1
 
   A_IconTip := "MyKeymap {{ .Options.MykeymapVersion }} created by 咸鱼阿康"
