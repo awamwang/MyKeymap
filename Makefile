@@ -25,7 +25,11 @@ copyFiles: CopyAHK
 	cp -r bin $(folder)/
 	cp -r tools $(folder)/
 	cp MyKeymap.exe $(folder)/
-	cp 误报病毒时执行这个.bat $(folder)/
+	@for file in *误报*.bat; do \
+		if [ -f "$$file" ]; then \
+			cp "$$file" $(folder)/; \
+		fi; \
+	done
 
 # 如果直接用 wsl 的 cp 命令复制, 复制出的文件会有 read-only 属性, 比较奇怪
 CopyAHK:

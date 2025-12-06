@@ -1707,8 +1707,8 @@
     {
       "id": 16,
       "name": "鼠标右键",
-      "hotkey": "RButton",
       "enable": false,
+      "hotkey": "RButton",
       "parentID": 0,
       "delay": 0,
       "disableAt": "",
@@ -2430,8 +2430,8 @@
         "value": "C:\\ProgramData\\Microsoft\\Windows\\Start Menu\\Programs\\"
       }
     ],
-    "language": "",
     "startup": true,
+    "language": "",
     "keyMapping": "",
     "keyboardLayout": "1 2 3 4 5 6 7 8 9 0\nq w e r t y u i o p\na s d f g h j k l ;\nz x c v b n m , . /\nspace enter backspace - [ ' singlePress"
   }
