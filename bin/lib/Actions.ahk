@@ -452,7 +452,7 @@ SystemSleep(needConfirm := false) {
   if needConfirm && MsgBox("确认睡眠吗", "确认", "OKCancel") != "OK"
     return
 
-  DllCall("PowrProf\SetSuspendState")
+  DllCall("PowrProf\SetSuspendState", "int", 0, "int", 1, "int", 0)
 }
 
 SystemRestartExplorer() {

@@ -89,12 +89,22 @@ GetProcessName() {
 }
 
 GetActiveProcess(type) {
-  fn := (winTitle) => (WinGetProcessName(winTitle) == 'ApplicationFrameHost.exe')
+  IsUwpWindow(winTitle) {
+    try {
+      return WinGetProcessName(winTitle) == "ApplicationFrameHost.exe"
+    } catch {
+      return false
+    }
+  }
+
+  if !WinExist("A") {
+    throw Error("未找到活动窗口")
+  }
 
   winTitle := "A"
-  if fn(winTitle) {
+  if IsUwpWindow(winTitle) {
     for hCtrl in WinGetControlsHwnd(winTitle)
-      bool := fn(hCtrl)
+      bool := IsUwpWindow(hCtrl)
     until !bool && winTitle := hCtrl
   }
 
